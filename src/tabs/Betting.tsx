@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { extractBets, type ExtractedBet } from '../lib/betImport'
 import { usePersisted, money, uid, ymd, download } from '../lib/store'
 import { actualProfit, clv, devig, evPct, expectedProfit, summarise } from '../lib/betting'
 import type { Bet, Bookmaker, BetResult } from '../lib/types'
@@ -21,6 +22,32 @@ export default function Betting() {
   const [view, setView] = useState<(typeof sub)[number]>('Overview')
   const [editing, setEditing] = useState<Bet | null>(null)
   const [period, setPeriod] = useState<'all' | '30' | '7'>('30')
+  const [apiKey] = usePersisted<string>('anthropicKey', '')
+  const shotRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState('')
+  const [review, setReview] = useState<(ExtractedBet & { keep: boolean; dup: boolean })[] | null>(null)
+
+  async function onShots(files: File[]) {
+    if (!files.length) return
+    if (!apiKey) { setImporting('Add your Claude API key in Settings to import screenshots.'); return }
+    setImporting(`Reading ${files.length} screenshot${files.length > 1 ? 's' : ''}…`)
+    try {
+      const got = await extractBets(apiKey, files, bookies.map((b) => b.name), ymd(new Date()))
+      const key = (x: { bookmaker: string; event: string; selection: string; stake: number; odds: number }) => [x.bookmaker, x.event, x.selection, x.stake, x.odds].join('|').toLowerCase()
+      const have = new Set(bets.map(key))
+      setReview(got.map((g) => ({ ...g, bookmaker: bookies.find((b) => b.name.toLowerCase() === g.bookmaker.toLowerCase())?.name ?? bookies.find((b) => b.name.toLowerCase().startsWith(g.bookmaker.toLowerCase().slice(0, 4)))?.name ?? g.bookmaker, dup: have.has(key(g)), keep: !have.has(key(g)) })))
+      setImporting(got.length ? '' : 'No bets found in those screenshots.')
+    } catch (e) { setImporting('Import failed: ' + (e as Error).message) }
+  }
+
+  function addReviewed() {
+    if (!review) return
+    const add: Bet[] = review.filter((r) => r.keep).map((r) => ({
+      id: uid(), date: /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : ymd(new Date()), bookmaker: r.bookmaker, event: r.event, selection: r.selection,
+      type: r.type, stake: r.stake, odds: r.odds, result: r.result, returned: r.result === 'cashout' || (r.result === 'won' && r.returned > 0) ? r.returned : undefined,
+    }))
+    setBets([...add, ...bets]); setReview(null); setImporting(`Added ${add.length} bets. Add fair odds to each to track EV.`)
+  }
 
   const inPeriod = useMemo(() => {
     if (period === 'all') return bets
@@ -35,7 +62,11 @@ export default function Betting() {
 
   return (
     <div className="page">
-      <div className="row between"><h1>Betting</h1><button className="btn primary" onClick={() => setEditing(newBet())}>+ Bet</button></div>
+      <div className="row between"><h1>Betting</h1>
+        <div className="row gap"><button className="btn" onClick={() => shotRef.current?.click()}>Import</button><button className="btn primary" onClick={() => setEditing(newBet())}>+ Bet</button></div>
+        <input ref={shotRef} type="file" accept="image/*" multiple hidden onChange={(e) => { const f = [...(e.target.files ?? [])]; e.target.value = ''; onShots(f) }} />
+      </div>
+      {importing && <div className="notice" onClick={() => setImporting('')}>{importing}</div>}
       <div className="seg">{sub.map((v) => <button key={v} className={v === view ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>
 
       {view === 'Overview' && (
@@ -86,6 +117,27 @@ export default function Betting() {
       {view === 'Bookies' && <Bookies bookies={bookies} setBookies={setBookies} />}
       {view === 'Devig' && <Devig />}
 
+      {review && (
+        <div className="sheet-bg" onClick={() => setReview(null)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <h3 className="sheet-title">Found {review.length} bet{review.length === 1 ? '' : 's'}</h3>
+            <p className="muted small">Check the account for each, untick any you don't want, then add.</p>
+            {review.map((r, i) => (
+              <div key={i} className={'rev' + (r.keep ? '' : ' off')}>
+                <label className="row gap"><input type="checkbox" checked={r.keep} onChange={(e) => setReview(review.map((x, j) => (j === i ? { ...x, keep: e.target.checked } : x)))} />
+                  <span className="grow"><b className="small">{r.selection || r.event}</b><br /><span className="muted tiny">{r.event} · {r.date || 'today'} · {money(r.stake)} @ {r.odds.toFixed(2)}{r.type === 'bonus' ? ' · bonus' : ''} · {r.result}{r.dup ? ' · already logged' : ''}</span></span>
+                </label>
+                <select value={r.bookmaker} onChange={(e) => setReview(review.map((x, j) => (j === i ? { ...x, bookmaker: e.target.value } : x)))}>
+                  {!bookies.some((b) => b.name === r.bookmaker) && <option>{r.bookmaker}</option>}
+                  {bookies.map((b) => <option key={b.id}>{b.name}</option>)}
+                </select>
+              </div>
+            ))}
+            <div className="row gap"><button className="btn primary" disabled={!review.some((r) => r.keep)} onClick={addReviewed}>Add {review.filter((r) => r.keep).length} bets</button><button className="btn" onClick={() => setReview(null)}>Cancel</button></div>
+          </div>
+        </div>
+      )}
+
       {editing && <BetForm bet={editing} bookies={bookies} onSave={saveBet} onDelete={() => { setBets(bets.filter((b) => b.id !== editing.id)); setEditing(null) }} onClose={() => setEditing(null)} />}
     </div>
   )
@@ -133,7 +185,7 @@ function Bookies({ bookies, setBookies }: { bookies: Bookmaker[]; setBookies: (b
   const upd = (id: string, patch: Partial<Bookmaker>) => setBookies(bookies.map((b) => (b.id === id ? { ...b, ...patch } : b)))
   return (
     <div className="card">
-      <p className="muted small">Each button opens the bookmaker's site in Safari, where you stay signed in. Save your passwords with iPhone Passwords (Face ID autofill) rather than in this app; bookmaker logins can't be safely stored or automated here.</p>
+      <p className="muted small">Got more than one account with a bookie? Tap “+ Another account” to track each separately. Each button opens the bookmaker's site in Safari, where you stay signed in. Save your passwords with iPhone Passwords (Face ID autofill) rather than in this app; bookmaker logins can't be safely stored or automated here.</p>
       {bookies.map((b) => (
         <div key={b.id} className="bookie-row">
           <div className="row between"><a href={b.url} target="_blank" rel="noreferrer"><b>{b.name}</b> ↗</a>
@@ -143,7 +195,10 @@ function Bookies({ bookies, setBookies }: { bookies: Bookmaker[]; setBookies: (b
             <label className="field"><span>Balance</span><input inputMode="decimal" value={b.balance ?? ''} onChange={(e) => upd(b.id, { balance: num(e.target.value) })} /></label>
             <label className="field"><span>Notes</span><input value={b.notes ?? ''} placeholder="promos, limits…" onChange={(e) => upd(b.id, { notes: e.target.value })} /></label>
           </div>
-          <button className="link danger" onClick={() => confirm(`Remove ${b.name}?`) && setBookies(bookies.filter((x) => x.id !== b.id))}>Remove</button>
+          <div className="row gap">
+            <button className="link" onClick={() => { const base = b.name.replace(/ \(\d+\)$/, ''); let n = 2; while (bookies.some((x) => x.name === `${base} (${n})`)) n++; const name = prompt('Name for the extra account', `${base} (${n})`); if (name) setBookies([...bookies, { id: uid(), name, url: b.url, status: 'active' }]) }}>+ Another account</button>
+            <button className="link danger" onClick={() => confirm(`Remove ${b.name}?`) && setBookies(bookies.filter((x) => x.id !== b.id))}>Remove</button>
+          </div>
         </div>
       ))}
       <button className="btn" onClick={() => { const name = prompt('Bookmaker name'); if (!name) return; const url = prompt('Website', 'https://') || ''; setBookies([...bookies, { id: uid(), name, url, status: 'active' }]) }}>+ Add bookmaker</button>
