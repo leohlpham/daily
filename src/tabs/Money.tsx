@@ -3,6 +3,7 @@ import { usePersisted, money, uid, download } from '../lib/store'
 import { parseCsv, detectMapping, rowsToTxns, txnKey, type Mapping } from '../lib/bank'
 import { CATEGORIES } from '../lib/categories'
 import type { CategoryRule, Txn } from '../lib/types'
+import { detectBills } from '../lib/bills'
 
 const monthOf = (d: string) => d.slice(0, 7)
 const monthLabel = (m: string) => new Date(m + '-01T12:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
@@ -18,6 +19,10 @@ export default function Money() {
   const [catFilter, setCatFilter] = useState('')
   const [editing, setEditing] = useState<Txn | null>(null)
   const [showBudgets, setShowBudgets] = useState(false)
+  const [dismissed, setDismissed] = usePersisted<string[]>('dismissedBills', [])
+  const bills = useMemo(() => detectBills(txns, dismissed), [txns, dismissed])
+  const billMonthly = bills.reduce((s, b) => s + b.monthly, 0)
+  const todayS = new Date().toISOString().slice(0, 10)
 
   const months = useMemo(() => [...new Set(txns.map((t) => monthOf(t.date)))].sort().reverse(), [txns])
   const [month, setMonth] = useState('')
@@ -83,7 +88,7 @@ export default function Money() {
       {pending && (
         <div className="card">
           <h3>Import {pending.name}</h3>
-          <p className="muted">Detected format: <b>{pending.mapping.bank}</b>. Check the columns, then import. Duplicates are skipped automatically.</p>
+          <p className="muted small">Format: <b>{pending.mapping.bank}</b></p>
           <div className="grid2">
             {colSel('date', 'Date')}{colSel('desc', 'Description')}{colSel('amount', 'Amount')}
             {colSel('debit', 'Debit (if separate)')}{colSel('credit', 'Credit (if separate)')}{colSel('upCategory', 'Bank category')}
@@ -105,7 +110,6 @@ export default function Money() {
             <li>Tap the ⋯ / statement option → <b>Export transactions</b> → CSV, pick a date range</li>
             <li>Save to Files, then tap <b>Import CSV</b> here</li>
           </ol>
-          <p className="muted small">Other banks work too (CBA, NAB, ANZ, Westpac and most others). Everything stays on this phone.</p>
         </div>
       )}
 
@@ -136,6 +140,28 @@ export default function Money() {
               )
             })}
           </div>
+
+          {bills.length > 0 && (
+            <div className="card">
+              <div className="row between"><h3>Bills &amp; subscriptions</h3><span className="small"><b>{money(billMonthly)}</b><span className="muted"> / month</span></span></div>
+              {bills.map((b) => {
+                const due = Math.round((new Date(b.next + 'T12:00:00').getTime() - new Date(todayS + 'T12:00:00').getTime()) / 864e5)
+                return (
+                  <div key={b.key} className="bill">
+                    <div className="grow">
+                      <div className="row gap"><b className="small ellipsis">{b.name}</b><span className="chip">{b.cadence}</span></div>
+                      <div className="muted tiny">{b.variable ? '≈ ' : ''}{money(b.amount)} · last {b.last.slice(8)}/{b.last.slice(5, 7)} · seen {b.count}×</div>
+                    </div>
+                    <div className="right">
+                      <span className={'due ' + (due < 0 ? 'late' : due <= 7 ? 'soon' : '')}>{due < 0 ? `${-due}d overdue?` : due === 0 ? 'Due today' : `in ${due}d`}</span>
+                      <button className="x" title="Not a bill" onClick={() => setDismissed([...dismissed, b.key])}>✕</button>
+                    </div>
+                  </div>
+                )
+              })}
+              {dismissed.length > 0 && <button className="link tiny" onClick={() => setDismissed([])}>Restore {dismissed.length} Hidden</button>}
+            </div>
+          )}
 
           <div className="card">
             <div className="row between"><h3>Transactions{catFilter && ` · ${catFilter}`}</h3>{catFilter && <button className="link" onClick={() => setCatFilter('')}>Show all</button>}</div>

@@ -220,3 +220,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .advrow { display: flex; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
 .advrow span { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .advrow em { font-style: normal; font-size: 10px; color: var(--muted); } .advrow b { font-size: 15px; } .advrow small { font-size: 10px; color: var(--muted); margin-left: 1px; }
+.bill { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.bill .right { display: flex; align-items: center; gap: 4px; }
+.due { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; } .due.soon { color: var(--amber); } .due.late { color: var(--neg); }
+/* Title Case on controls and headings */
+.btn, .link, .seg button, h3, .label, .bookie, .chip, .tabbar button span, details summary, .field > span, .stat span, .mlabel, .advcell span, .advrow em { text-transform: capitalize; }

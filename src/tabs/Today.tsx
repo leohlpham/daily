@@ -1,5 +1,6 @@
 import { usePersisted, money, ymd } from '../lib/store'
 import { summarise } from '../lib/betting'
+import { detectBills } from '../lib/bills'
 import type { Activity, Bet, CalEvent, DailyLog, Txn } from '../lib/types'
 
 const fmt = (iso: string) => new Date(iso).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
@@ -41,6 +42,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
   const [bets] = usePersisted<Bet[]>('bets', [])
   const [logs] = usePersisted<DailyLog[]>('dailyLogs', [])
   const [acts] = usePersisted<Activity[]>('activities', [])
+  const [dismissed] = usePersisted<string[]>('dismissedBills', [])
   const now = new Date()
   const today = ymd(now)
   const hr = now.getHours()
@@ -67,6 +69,8 @@ export default function Today({ go }: { go: (t: string) => void }) {
   const thisSpend = spendIn(month), lastSpend = spendIn(lastMonth, now.getDate())
   const bs = summarise(bets.filter((b) => b.date >= weekCut))
   const allPending = bets.filter((b) => b.result === 'pending').length
+  const in7 = ymd(new Date(Date.now() + 7 * 864e5))
+  const dueSoon = detectBills(txns, dismissed).filter((b) => b.next >= today && b.next <= in7)
 
   return (
     <div className="page home">
@@ -129,6 +133,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
           <span className="label">Spent This Month</span>
           <b className="big">{money(thisSpend)}</b>
           {lastSpend > 0 ? <span className={'pill ' + (thisSpend <= lastSpend ? 'good' : 'bad')}>{thisSpend <= lastSpend ? '↓' : '↑'} {money(Math.abs(thisSpend - lastSpend))} vs last month</span> : <span className="foot">{txns.length ? 'This month so far' : 'Import a CSV'}</span>}
+          {dueSoon.length > 0 && <span className="foot">{dueSoon.length} bill{dueSoon.length > 1 ? 's' : ''} due this week · {money(dueSoon.reduce((s, b) => s + b.amount, 0))}</span>}
         </button>
         <button className="card tap tile" onClick={() => go('betting')}>
           <span className="label">Betting · 7 Days</span>

@@ -29,7 +29,6 @@ export default function Settings() {
         <div className="card">
           <h3>Install on your iPhone</h3>
           <ol className="muted small"><li>Open this page in <b>Safari</b></li><li>Tap the Share button</li><li>Tap <b>Add to Home Screen</b></li></ol>
-          <p className="muted small">It then opens full-screen like a normal app and works offline.</p>
         </div>
       )}
 
@@ -42,7 +41,7 @@ export default function Settings() {
             <label className="field"><span>Microsoft app (client) ID</span><input value={clientId} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" onChange={(e) => setClientId(e.target.value.trim())} /></label>
             <button className="btn primary" disabled={!/^[0-9a-f-]{36}$/i.test(clientId)} onClick={() => outlookSignIn(clientId)}>Sign in with Microsoft</button>
             <details className="muted small help">
-              <summary>One-time setup (about 3 minutes, free)</summary>
+              <summary>How to set up</summary>
               <ol>
                 <li>Go to <b>portal.azure.com</b> and sign in with your Microsoft account.</li>
                 <li>Search <b>App registrations</b> → <b>New registration</b>.</li>
@@ -65,7 +64,7 @@ export default function Settings() {
             <label className="field"><span>Google OAuth client ID</span><input value={googleId} placeholder="…apps.googleusercontent.com" onChange={(e) => setGoogleId(e.target.value.trim())} /></label>
             <button className="btn primary" disabled={!googleId.endsWith('.apps.googleusercontent.com')} onClick={() => googleSignIn(googleId)}>Sign in with Google</button>
             <details className="muted small help">
-              <summary>One-time setup (about 5 minutes, free)</summary>
+              <summary>How to set up</summary>
               <ol>
                 <li>Go to <b>console.cloud.google.com</b> and create a project called LifeHub.</li>
                 <li>APIs &amp; Services → Library → enable <b>Google Calendar API</b>.</li>
@@ -93,7 +92,7 @@ export default function Settings() {
             </div>
             <button className="btn primary" disabled={!/^\d+$/.test(stravaId) || stravaSecret.length < 20} onClick={() => stravaSignIn(stravaId)}>Connect Strava</button>
             <details className="muted small help">
-              <summary>One-time setup (about 2 minutes, free)</summary>
+              <summary>How to set up</summary>
               <ol>
                 <li>In Garmin Connect app → More → Settings → Connected Apps → <b>Strava</b>, turn it on so every workout uploads to Strava.</li>
                 <li>On a browser, go to <b>strava.com/settings/api</b> and create an app (any name and website).</li>
@@ -109,12 +108,12 @@ export default function Settings() {
       <div className="card">
         <h3>Claude AI planner</h3>
         <label className="field"><span>Anthropic API key</span><input type="password" value={apiKey} placeholder="sk-ant-…" onChange={(e) => setApiKey(e.target.value.trim())} /></label>
-        <p className="muted small">Get one at <b>console.anthropic.com</b> → API Keys, and add a few dollars of credit. Each day plan costs a few cents. The key is stored only on this phone and is sent only to Anthropic.</p>
+        <details className="muted small help"><summary>How to get a key</summary><p>Go to <b>console.anthropic.com</b> → API Keys, create one and add a few dollars of credit. Each plan or import costs a few cents. The key stays on this phone and is only sent to Anthropic.</p></details>
       </div>
 
       <div className="card">
         <h3>Backup</h3>
-        <p className="muted small">All your data lives on this device. Export a backup now and then (save it to iCloud Drive), especially before deleting the app.</p>
+        
         <div className="row gap">
           <button className="btn" onClick={async () => download(`lifehub-backup-${new Date().toISOString().slice(0, 10)}.json`, await exportAll())}>Export backup</button>
           <button className="btn" onClick={() => fileRef.current?.click()}>Restore</button>

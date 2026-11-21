@@ -77,7 +77,7 @@ export default function Health() {
 
   return (
     <div className="page">
-      <div className="row between"><h1>Health</h1><div className="row gap"><button className="btn" onClick={() => shotRef.current?.click()}>Garmin screenshot</button><button className="btn" onClick={() => fileRef.current?.click()}>CSV</button></div>
+      <div className="row between"><h1>Health</h1><div className="row gap"><button className="btn" onClick={() => shotRef.current?.click()}>Garmin Screenshot</button><button className="btn" onClick={() => fileRef.current?.click()}>CSV</button></div>
         <input ref={shotRef} type="file" accept="image/*" multiple hidden onChange={(e) => { const f = [...(e.target.files ?? [])]; e.target.value = ''; onGarminShots(f) }} />
         <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = '' }} /></div>
       {msg && <div className="notice" onClick={() => setMsg('')}>{msg}</div>}
@@ -95,7 +95,6 @@ export default function Health() {
             <div key={l} className="advcell"><span>{l}</span><b>{v ?? '—'}{v !== undefined && u ? <small>{u}</small> : null}</b>{sub && <em>{sub}</em>}</div>
           ))}
         </div>
-        <p className="muted tiny">Garmin doesn't share these with Apple Health or Strava. Screenshot your My Day, HRV, Sleep or Training Readiness screens in Garmin Connect and tap “Garmin screenshot”. Claude fills them in.</p>
       </div>
 
       <div className="card">
@@ -114,11 +113,11 @@ export default function Health() {
         <div className="row between"><h3>Daily log</h3><input type="date" className="date-sm" value={date} onChange={(e) => setDate(e.target.value)} /></div>
         <div className="grid3">
           {numField('sleepHrs', 'Sleep (h)')}{numField('steps', 'Steps', 'numeric')}{numField('restingHr', 'Resting HR', 'numeric')}
-          {numField('weightKg', 'Weight (kg)')}{numField('water', 'Water (L)')}
+          {numField('weightKg', 'Weight (KG)')}{numField('water', 'Water (L)')}
         </div>
         <div className="grid2">{scale('energy', 'Energy')}{scale('mood', 'Mood')}</div>
         <textarea placeholder="Notes" value={log.notes ?? ''} onChange={(e) => set({ notes: e.target.value })} />
-        <button className="link" onClick={() => setShowHelp(!showHelp)}>{showHelp ? 'Hide' : 'How to fill this in automatically from Garmin'}</button>
+        <button className="link" onClick={() => setShowHelp(!showHelp)}>{showHelp ? 'Hide' : 'How To Fill This In Automatically'}</button>
         {showHelp && (
           <div className="muted small help">
             <p><b>Daily stats (sleep, steps, resting HR):</b> in Garmin Connect app → More → Settings → Connected Apps → Apple Health, turn everything on. Then make an iPhone Shortcut:</p>
@@ -127,6 +126,7 @@ export default function Health() {
               <li>Add <i>Open URLs</i> with: <code>{location.origin + location.pathname}?steps=[Steps]&amp;sleep=[Sleep]&amp;rhr=[Resting HR]</code></li>
               <li>Automation tab → Time of Day (e.g. 9pm) → run it.</li>
             </ol>
+            <p><b>Advanced stats (Body Battery, HRV, stress, readiness, VO2 max):</b> Garmin doesn't share these, so screenshot those screens in Garmin Connect and tap Garmin Screenshot.</p>
             <p><b>Activities:</b> on connect.garmin.com (desktop site in Safari) → Activities → All Activities → Export CSV, then tap Import Garmin.</p>
           </div>
         )}
@@ -134,7 +134,7 @@ export default function Health() {
 
       <div className="card">
         <div className="row between"><h3>Recent activities</h3>
-          {stravaAuth() ? <button className="link" onClick={async () => { setMsg('Syncing Strava…'); try { const n = await stravaSyncNow(true); setMsg(`Synced ${n ?? 0} Strava activities.`); location.reload() } catch (e) { setMsg((e as Error).message) } }}>↻ Strava</button> : <span className="muted tiny">Connect Strava in Settings for auto-sync</span>}
+          {stravaAuth() ? <button className="link" onClick={async () => { setMsg('Syncing Strava…'); try { const n = await stravaSyncNow(true); setMsg(`Synced ${n ?? 0} Strava activities.`); location.reload() } catch (e) { setMsg((e as Error).message) } }}>↻ Strava</button> : null}
         </div>
         {[...acts].reverse().slice(0, 20).map((a) => (
           <div key={a.id} className="row between line">

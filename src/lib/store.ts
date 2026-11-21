@@ -23,7 +23,7 @@ export function usePersisted<T>(key: string, initial: T): [T, (v: T | ((p: T) =>
   return [value, setValue, loaded]
 }
 
-export const STORE_KEYS = ['transactions', 'categoryRules', 'budgets', 'bets', 'bookmakers', 'events', 'planGoals', 'planSettings', 'msClientId', 'activities', 'dailyLogs'] as const
+export const STORE_KEYS = ['transactions', 'categoryRules', 'budgets', 'bets', 'bookmakers', 'events', 'planGoals', 'planSettings', 'msClientId', 'activities', 'dailyLogs', 'dismissedBills', 'googleClientId', 'stravaClientId'] as const
 
 export async function exportAll(): Promise<string> {
   const out: Record<string, unknown> = {}

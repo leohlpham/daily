@@ -82,7 +82,6 @@ export default function Betting() {
             <div className="stat"><span>Bonus conv.</span><b>{s.bonusConversion === null ? '—' : (s.bonusConversion * 100).toFixed(0) + '%'}</b></div>
             <div className="stat"><span>Pending</span><b>{money(s.pendingStake)}</b></div>
           </div>
-          <p className="muted small">Profit vs expected shows whether you're running hot or cold. CLV is your edge signal: consistently beating the closing line means your bets are genuinely +EV.</p>
           <div className="card">
             <h3>Quick open</h3>
             <div className="bookie-grid">{bookies.map((b) => <a key={b.id} className={'bookie ' + (b.status ?? '')} href={b.url} target="_blank" rel="noreferrer">{b.name}{b.balance !== undefined && <small>{money(b.balance)}</small>}</a>)}</div>
@@ -121,7 +120,7 @@ export default function Betting() {
         <div className="sheet-bg" onClick={() => setReview(null)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <h3 className="sheet-title">Found {review.length} bet{review.length === 1 ? '' : 's'}</h3>
-            <p className="muted small">Check the account for each, untick any you don't want, then add.</p>
+            
             {review.map((r, i) => (
               <div key={i} className={'rev' + (r.keep ? '' : ' off')}>
                 <label className="row gap"><input type="checkbox" checked={r.keep} onChange={(e) => setReview(review.map((x, j) => (j === i ? { ...x, keep: e.target.checked } : x)))} />
@@ -185,7 +184,6 @@ function Bookies({ bookies, setBookies }: { bookies: Bookmaker[]; setBookies: (b
   const upd = (id: string, patch: Partial<Bookmaker>) => setBookies(bookies.map((b) => (b.id === id ? { ...b, ...patch } : b)))
   return (
     <div className="card">
-      <p className="muted small">Got more than one account with a bookie? Tap “+ Another account” to track each separately. Each button opens the bookmaker's site in Safari, where you stay signed in. Save your passwords with iPhone Passwords (Face ID autofill) rather than in this app; bookmaker logins can't be safely stored or automated here.</p>
       {bookies.map((b) => (
         <div key={b.id} className="bookie-row">
           <div className="row between"><a href={b.url} target="_blank" rel="noreferrer"><b>{b.name}</b> ↗</a>
@@ -217,7 +215,6 @@ function Devig() {
   return (
     <div className="card">
       <h3>No-vig fair odds</h3>
-      <p className="muted small">Enter the sharp book's odds for every outcome in the market (e.g. Pinnacle or Betfair), separated by commas.</p>
       <input value={txt} onChange={(e) => setTxt(e.target.value)} inputMode="decimal" />
       {fair.length > 0 && (
         <>
