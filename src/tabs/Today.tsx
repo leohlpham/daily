@@ -43,13 +43,13 @@ export default function Today({ go }: { go: (t: string) => void }) {
 
       <div className="grid2">
         <button className="card tap" onClick={() => go('money')}>
-          <h3>Spent this month</h3>
+          <h3>Spent This Month</h3>
           <b className="big">{money(thisSpend)}</b>
           {lastSpendSamePoint > 0 && <p className={'small ' + (thisSpend <= lastSpendSamePoint ? 'pos' : 'neg')}>{thisSpend <= lastSpendSamePoint ? '▼' : '▲'} {money(Math.abs(thisSpend - lastSpendSamePoint))} vs last month</p>}
           <p className="muted tiny">{latestTxn ? `Data to ${latestTxn}` : 'Import a CSV'}</p>
         </button>
         <button className="card tap" onClick={() => go('betting')}>
-          <h3>Betting · 7d</h3>
+          <h3>Betting · 7 Days</h3>
           <b className={'big ' + (bs.profit >= 0 ? 'pos' : 'neg')}>{money(bs.profit)}</b>
           <p className="muted small">EV {money(bs.ev)}</p>
           <p className="muted tiny">{allPending} pending</p>
@@ -60,7 +60,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
           <p className="muted small">{log?.steps ? `${log.steps.toLocaleString()} steps` : 'Log today'}</p>
         </button>
         <button className="card tap" onClick={() => go('health')}>
-          <h3>Training · 7d</h3>
+          <h3>Training · 7 Days</h3>
           <b className="big">{weekTrain.length}</b>
           <p className="muted small">{Math.round(weekTrain.reduce((s, a) => s + (a.distanceKm ?? 0), 0))} km · {Math.round(weekTrain.reduce((s, a) => s + (a.durationMin ?? 0), 0))} min</p>
         </button>
