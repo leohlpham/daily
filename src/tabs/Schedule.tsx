@@ -113,7 +113,7 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
           <DayGrid date={date} events={day} dayStart={settings.dayStart} onRemove={(id) => setEvents(events.filter((x) => x.id !== id))} />
 
           <div className="planbar">
-            <button className="btn xs primary" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings for AI planning. Used the quick planner instead.'), plan(false))}>✨ Plan my day</button>
+            <button className="btn xs primary" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings for AI planning. Used the quick planner instead.'), plan(false))}>Plan my day</button>
             <button className="btn xs" disabled={!!busy} onClick={() => plan(false)}>Quick</button>
             <button className="btn xs" onClick={() => setShowPlanOpts(!showPlanOpts)} aria-label="More">⋯</button>
           </div>
