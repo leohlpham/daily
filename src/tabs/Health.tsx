@@ -4,6 +4,7 @@ import { parseCsv, parseDate } from '../lib/csv'
 import type { Activity, DailyLog } from '../lib/types'
 import { stravaAuth, stravaSyncNow } from '../lib/strava'
 import { extractGarminStats } from '../lib/garminShot'
+import TrainingPlan from './TrainingPlan'
 
 const hms = (s: string) => { const p = s.split(':').map(Number); if (p.some(isNaN)) return undefined; return p.length === 3 ? p[0] * 60 + p[1] + p[2] / 60 : p.length === 2 ? p[0] + p[1] / 60 : undefined }
 const n = (s?: string) => { if (!s) return undefined; const v = parseFloat(s.replace(/,/g, '')); return isNaN(v) ? undefined : v }
@@ -96,6 +97,8 @@ export default function Health() {
           ))}
         </div>
       </div>
+
+      <TrainingPlan acts={acts} />
 
       <div className="card">
         <h3>Last 14 days</h3>

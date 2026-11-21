@@ -1,6 +1,8 @@
 import { usePersisted, money, ymd } from '../lib/store'
 import { summarise } from '../lib/betting'
 import { detectBills } from '../lib/bills'
+import Habits from './Habits'
+import type { TrainingPlan } from '../lib/context'
 import type { Activity, Bet, CalEvent, DailyLog, Txn } from '../lib/types'
 
 const fmt = (iso: string) => new Date(iso).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
@@ -13,8 +15,8 @@ function Ring({ value, goal, size = 112, stroke = 10, color, children }: { value
     <div className="ring" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--chip)" strokeWidth={stroke} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
-          strokeDasharray={`${c * pct} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .6s ease' }} />
+        {pct > 0 && <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={`${c * pct} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .6s ease' }} />}
       </svg>
       <div className="ring-center">{children}</div>
     </div>
@@ -43,6 +45,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
   const [logs] = usePersisted<DailyLog[]>('dailyLogs', [])
   const [acts] = usePersisted<Activity[]>('activities', [])
   const [dismissed] = usePersisted<string[]>('dismissedBills', [])
+  const [plan] = usePersisted<TrainingPlan | null>('trainingPlan', null)
   const now = new Date()
   const today = ymd(now)
   const hr = now.getHours()
@@ -80,7 +83,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
       </div>
 
       <button className="card tap hero" onClick={() => go('health')}>
-        <div className="row between"><span className="label">Activity · {shownLabel || 'No data yet'}</span><span className="chev">›</span></div>
+        <div className="row between"><span className="badge">Activity · {shownLabel || 'No Data Yet'}</span><span className="chev">›</span></div>
         <div className="hero-body">
           <Ring value={steps} goal={STEP_GOAL} color="var(--accent)">
             <b className="ring-num">{steps ? steps.toLocaleString() : '—'}</b>
@@ -101,7 +104,6 @@ export default function Today({ go }: { go: (t: string) => void }) {
             {shown?.stress !== undefined && <span><em>Stress</em><b>{shown.stress}</b></span>}
           </div>
         )}
-        {!shown && <p className="hint">Connect Garmin → Apple Health and the nightly Shortcut (Health tab) to fill this in automatically.</p>}
       </button>
 
       <div className="trend-row">
@@ -121,6 +123,19 @@ export default function Today({ go }: { go: (t: string) => void }) {
           )
         })}
       </div>
+
+      {(() => {
+        const t = plan?.days.find((d) => d.date === today)
+        return t ? (
+          <button className="card tap session" onClick={() => go('health')}>
+            <div className="row between"><span className="badge">Today's Training</span><span className={'intensity-pill ' + t.intensity}>{t.intensity}</span></div>
+            <b className="small">{t.title}{t.type !== 'rest' ? ` · ${t.durationMin} min` : ''}</b>
+            {t.type !== 'rest' && <span className="muted tiny">{t.details}</span>}
+          </button>
+        ) : null
+      })()}
+
+      <Habits />
 
       <button className="card tap upnext" onClick={() => go('schedule')}>
         <div className="row between"><span className="label">Up next</span><span className="chev">›</span></div>

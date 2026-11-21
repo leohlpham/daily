@@ -4,6 +4,7 @@ import { fetchOutlookEvents, outlookAccount } from '../lib/outlook'
 import { aiPlan, rulePlan } from '../lib/planner'
 import { fetchGoogleEvents, googleConnected } from '../lib/google'
 import DayGrid from './DayGrid'
+import type { TrainingPlan } from '../lib/context'
 import type { Activity, CalEvent, DailyLog, PlanGoal, PlanSettings } from '../lib/types'
 
 export const DEFAULT_GOALS: PlanGoal[] = [
@@ -27,6 +28,7 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
   const [apiKey] = usePersisted<string>('anthropicKey', '')
   const [logs] = usePersisted<DailyLog[]>('dailyLogs', [])
   const [acts] = usePersisted<Activity[]>('activities', [])
+  const [tplan] = usePersisted<TrainingPlan | null>('trainingPlan', null)
   const [date, setDate] = useState(ymd(new Date()))
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
@@ -82,7 +84,8 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
     if (useAi) {
       setBusy('Claude is planning your day…')
       try {
-        const r = await aiPlan({ apiKey, date, events: fixed, goals, settings, recentLogs: logs, recentActivities: acts, extra })
+        const ts = tplan?.days.find((d) => d.date === date)
+        const r = await aiPlan({ apiKey, date, events: fixed, goals, settings, recentLogs: logs, recentActivities: acts, extra: [extra, ts && ts.type !== 'rest' ? `Training plan session for today: ${ts.title}, ${ts.durationMin} min (${ts.details}). Use this instead of a generic training block.` : ts ? 'Training plan says rest day today.' : ''].filter(Boolean).join(' ') })
         setEvents([...keep, ...r.events.map((e) => ({ ...e, note: r.notes[e.id] }))])
         setSummary(r.summary)
       } catch (e) { setMsg('Planning failed: ' + (e as Error).message) }

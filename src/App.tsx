@@ -6,6 +6,7 @@ import Money from './tabs/Money'
 import Health from './tabs/Health'
 import Betting from './tabs/Betting'
 import Settings from './tabs/Settings'
+import Chat from './tabs/Chat'
 import { ymd } from './lib/store'
 import { captureGoogleRedirect } from './lib/google'
 import { captureStravaCode, stravaFinishSignIn, stravaSyncNow } from './lib/strava'
@@ -47,6 +48,7 @@ export default function App() {
   })
   const [toast, setToast] = useState('')
   const [k, setK] = useState(0)
+  const [chat, setChat] = useState(false)
 
   useEffect(() => { try { localStorage.setItem('tab', tab) } catch { /* ignore */ } window.scrollTo(0, 0) }, [tab])
   useEffect(() => {
@@ -70,6 +72,12 @@ export default function App() {
         {tab === 'betting' && <Betting />}
         {tab === 'settings' && <Settings />}
       </main>
+      {!chat && (
+        <button className="fab" aria-label="Ask LifeHub" onClick={() => setChat(true)}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg>
+        </button>
+      )}
+      {chat && <Chat onClose={() => setChat(false)} />}
       <nav className="tabbar">
         {TABS.map((t) => (
           <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
