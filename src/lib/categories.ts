@@ -14,7 +14,7 @@ const DEFAULTS: [string, string][] = [
   ['gym', 'Health & fitness'], ['chemist', 'Health & fitness'], ['pharmacy', 'Health & fitness'], ['physio', 'Health & fitness'], ['rebel', 'Health & fitness'],
   ['ticketek', 'Entertainment'], ['ticketmaster', 'Entertainment'], ['hoyts', 'Entertainment'], ['village cinema', 'Entertainment'], ['steam', 'Entertainment'],
   ['qantas', 'Travel'], ['virgin', 'Travel'], ['jetstar', 'Travel'], ['airbnb', 'Travel'], ['booking.com', 'Travel'],
-  ['sportsbet', 'Betting'], ['ladbrokes', 'Betting'], ['neds', 'Betting'], ['bet365', 'Betting'], ['tabcorp', 'Betting'], ['tab ', 'Betting'], ['pointsbet', 'Betting'], ['betfair', 'Betting'], ['unibet', 'Betting'], ['palmerbet', 'Betting'], ['bluebet', 'Betting'], ['betr', 'Betting'], ['picklebet', 'Betting'], ['dabble', 'Betting'], ['topsport', 'Betting'], ['betdeluxe', 'Betting'], ['boombet', 'Betting'],
+  ['sportsbet', 'Betting'], ['ladbrokes', 'Betting'], ['neds', 'Betting'], ['bet365', 'Betting'], ['tabcorp', 'Betting'], ['tab ', 'Betting'], ['pointsbet', 'Betting'], ['betfair', 'Betting'], ['unibet', 'Betting'], ['palmerbet', 'Betting'], ['bluebet', 'Betting'], ['betr', 'Betting'], ['picklebet', 'Betting'], ['dabble', 'Betting'], ['topsport', 'Betting'], ['betdeluxe', 'Betting'], ['boombet', 'Betting'], ['betright', 'Betting'], ['ponybet', 'Betting'],
   ['salary', 'Income'], ['payroll', 'Income'], ['wage', 'Income'], ['pay ', 'Income'], ['interest', 'Income'],
   ['transfer', 'Transfers'], ['osko', 'Transfers'], ['payid', 'Transfers'], ['bpay', 'Rent & bills'],
 ]

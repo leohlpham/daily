@@ -9,7 +9,7 @@ export const DEFAULT_BOOKIES: Bookmaker[] = [
   { id: 'tab', name: 'TAB', url: 'https://www.tab.com.au', status: 'active' },
   { id: 'ladbrokes', name: 'Ladbrokes', url: 'https://www.ladbrokes.com.au', status: 'active' },
   { id: 'dabble', name: 'Dabble', url: 'https://dabble.com.au', status: 'active' },
-  { id: 'ponybet', name: 'PonyBet', url: 'https://www.ponybet.com.au', status: 'active' },
+  { id: 'betright', name: 'BetRight', url: 'https://www.betright.com.au', status: 'active' },
 ]
 
 const pct = (n: number | null) => (n === null ? '—' : (n >= 0 ? '+' : '') + (n * 100).toFixed(1) + '%')
