@@ -48,8 +48,6 @@ export default function Today({ go }: { go: (t: string) => void }) {
   const [plan] = usePersisted<TrainingPlan | null>('trainingPlan', null)
   const now = new Date()
   const today = ymd(now)
-  const hr = now.getHours()
-  const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'
 
   // Health
   const last7 = Array.from({ length: 7 }, (_, i) => ymd(new Date(Date.now() - (6 - i) * 864e5)))
@@ -79,7 +77,6 @@ export default function Today({ go }: { go: (t: string) => void }) {
     <div className="page home">
       <div className="home-head">
         <span className="date">{now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-        <h1>{greet}, Leo</h1>
       </div>
 
       <button className="card tap hero" onClick={() => go('health')}>
