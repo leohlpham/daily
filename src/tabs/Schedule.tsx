@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePersisted, uid, ymd } from '../lib/store'
-import { fetchOutlookEvents, outlookAccount, outlookSignIn } from '../lib/outlook'
+import { fetchOutlookEvents, outlookAccount } from '../lib/outlook'
 import { aiPlan, rulePlan } from '../lib/planner'
+import { fetchGoogleEvents, googleConnected } from '../lib/google'
+import DayGrid from './DayGrid'
 import type { Activity, CalEvent, DailyLog, PlanGoal, PlanSettings } from '../lib/types'
 
 export const DEFAULT_GOALS: PlanGoal[] = [
@@ -16,10 +18,12 @@ const fmt = (iso: string) => new Date(iso).toLocaleTimeString('en-AU', { hour: '
 const addDays = (d: string, n: number) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return ymd(x) }
 
 export default function Schedule({ openSettings }: { openSettings: () => void }) {
-  const [events, setEvents] = usePersisted<CalEvent[]>('events', [])
+  const [events, setEvents, eventsLoaded] = usePersisted<CalEvent[]>('events', [])
   const [goals, setGoals] = usePersisted<PlanGoal[]>('planGoals', DEFAULT_GOALS)
   const [settings, setSettings] = usePersisted<PlanSettings>('planSettings', DEFAULT_SETTINGS)
   const [clientId] = usePersisted<string>('msClientId', '')
+  const [googleId] = usePersisted<string>('googleClientId', '')
+  const [showPlanOpts, setShowPlanOpts] = useState(false)
   const [apiKey] = usePersisted<string>('anthropicKey', '')
   const [logs] = usePersisted<DailyLog[]>('dailyLogs', [])
   const [acts] = usePersisted<Activity[]>('activities', [])
@@ -27,28 +31,47 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
   const [summary, setSummary] = useState('')
+  void openSettings
   const [extra, setExtra] = useState('')
   const [signedIn, setSignedIn] = useState(false)
   const [showGoals, setShowGoals] = useState(false)
   const [adding, setAdding] = useState(false)
   const [view, setView] = useState<'day' | 'week'>('day')
 
+  useEffect(() => {
+    if (!eventsLoaded || !googleId) return
+    let flag = false
+    try { flag = localStorage.getItem('autoSync') === '1'; localStorage.removeItem('autoSync') } catch { /* ignore */ }
+    if (flag) sync()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventsLoaded, googleId])
   useEffect(() => { outlookAccount(clientId).then((a) => setSignedIn(!!a)).catch(() => {}) }, [clientId])
 
   const day = useMemo(() => events.filter((e) => e.start.slice(0, 10) === date).sort((a, b) => (a.allDay ? -1 : b.allDay ? 1 : a.start.localeCompare(b.start))), [events, date])
 
   async function sync() {
-    if (!clientId) { setMsg('Add your Microsoft app ID in Settings first (one-time setup, steps are there).'); return }
-    if (!signedIn) { await outlookSignIn(clientId); return }
-    setBusy('Syncing Outlook…')
+    const useOutlook = !!clientId && signedIn, useGoogle = !!googleId && googleConnected()
+    if (!useOutlook && !useGoogle) { setMsg('Connect Outlook or Google Calendar in Settings first (one-time setup, steps are there).'); return }
+    setBusy('Syncing calendars…')
+    const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 7)
+    const to = new Date(from); to.setDate(to.getDate() + 42)
+    const fromS = ymd(from), toS = ymd(to)
+    const inRange = (e: CalEvent) => e.start.slice(0, 10) >= fromS && e.start.slice(0, 10) < toS
+    let next = events
+    const done: string[] = []
     try {
-      const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 7)
-      const to = new Date(from); to.setDate(to.getDate() + 42)
-      const fresh = await fetchOutlookEvents(clientId, from, to)
-      const fromS = ymd(from), toS = ymd(to)
-      setEvents([...events.filter((e) => e.source !== 'outlook' || e.start.slice(0, 10) < fromS || e.start.slice(0, 10) >= toS), ...fresh])
-      setMsg(`Synced ${fresh.length} Outlook events.`)
-    } catch (e) { setMsg((e as Error).message) }
+      if (useOutlook) {
+        const o = await fetchOutlookEvents(clientId, from, to)
+        next = [...next.filter((e) => e.source !== 'outlook' || !inRange(e)), ...o]; done.push(`${o.length} Outlook`)
+      }
+      if (useGoogle) {
+        const g = await fetchGoogleEvents(googleId, from, to)
+        if (g === null) { setEvents(next); return } // redirecting to Google
+        next = [...next.filter((e) => e.source !== 'google' || !inRange(e)), ...g]; done.push(`${g.length} Google`)
+      }
+      setEvents(next)
+      setMsg(`Synced ${done.join(' and ')} events.`)
+    } catch (e) { setEvents(next); setMsg((e as Error).message) }
     setBusy('')
   }
 
@@ -76,11 +99,10 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
   const weekEvents = (d: string) => events.filter((e) => e.start.slice(0, 10) === d).sort((x, y) => (x.allDay ? -1 : y.allDay ? 1 : x.start.localeCompare(y.start)))
   const weekActs = acts.filter((x) => x.date >= weekStart && x.date <= weekDays[6])
   const busyMin = weekDays.reduce((s, d) => s + weekEvents(d).filter((e) => !e.allDay && e.source !== 'plan').reduce((t, e) => t + (new Date(e.end).getTime() - new Date(e.start).getTime()) / 60000, 0), 0)
-  const range = (e: CalEvent) => e.allDay ? 'All day' : `${fmt(e.start)}–${fmt(e.end)}`
-
+  
   return (
     <div className="page compact">
-      <div className="row between"><h2 className="title">Schedule</h2><button className="btn sm" onClick={sync} disabled={!!busy}>{signedIn ? '↻ Outlook' : 'Connect Outlook'}</button></div>
+      <div className="row between"><h2 className="title">Schedule</h2><div className="row gap"><button className="btn sm" onClick={() => setAdding(true)}>+</button><button className="btn sm" onClick={sync} disabled={!!busy}>↻ Sync</button></div></div>
       <div className="seg small">{(['day', 'week'] as const).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>
       {msg && <div className="notice small" onClick={() => setMsg('')}>{msg}</div>}
       {busy && <div className="notice small">{busy}</div>}
@@ -88,35 +110,21 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
       {view === 'day' && (
         <>
           <div className="daynav sm"><button onClick={() => setDate(addDays(date, -1))}>‹</button><b onClick={() => setDate(ymd(new Date()))}>{label}</b><button onClick={() => setDate(addDays(date, 1))}>›</button></div>
-          <div className="list">
-            {day.map((e) => (
-              <div key={e.id} className={'erow ' + e.source}>
-                <span className="etime">{range(e)}</span>
-                <div className="grow">
-                  <div className="etitle">{e.title}</div>
-                  {(e.location || e.note) && <div className="muted tiny">{[e.location, e.note].filter(Boolean).join(' · ')}</div>}
-                </div>
-                {e.source !== 'outlook' && <button className="x" onClick={() => setEvents(events.filter((x) => x.id !== e.id))}>✕</button>}
-              </div>
-            ))}
-            {!day.length && <p className="muted small center">Nothing scheduled.</p>}
-          </div>
-          <div className="row gap">
-            <button className="btn sm" onClick={() => setAdding(true)}>+ Event</button>
-            <button className="btn sm" onClick={() => setShowGoals(!showGoals)}>{showGoals ? 'Hide routine' : 'Edit routine'}</button>
-          </div>
-          {showGoals && <Goals goals={goals} setGoals={setGoals} settings={settings} setSettings={setSettings} />}
+          <DayGrid date={date} events={day} dayStart={settings.dayStart} onRemove={(id) => setEvents(events.filter((x) => x.id !== id))} />
 
-          <div className="card plan">
-            <div className="small"><b>Plan this day</b> <span className="muted">fits your routine around your calendar</span></div>
-            <input className="sm" placeholder="Anything special? e.g. long run, tired" value={extra} onChange={(e) => setExtra(e.target.value)} />
-            <div className="row gap">
-              <button className="btn sm primary grow" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings to use AI planning. Used the quick planner instead.'), plan(false))}>✨ Plan my day</button>
-              <button className="btn sm" disabled={!!busy} onClick={() => plan(false)}>Quick plan</button>
-            </div>
-            {summary && <p className="muted tiny">{summary}</p>}
-            {!apiKey && <p className="muted tiny">AI planning needs a Claude API key. <button className="link tiny" onClick={openSettings}>Add in Settings</button></p>}
+          <div className="planbar">
+            <button className="btn xs primary" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings for AI planning. Used the quick planner instead.'), plan(false))}>✨ Plan my day</button>
+            <button className="btn xs" disabled={!!busy} onClick={() => plan(false)}>Quick</button>
+            <button className="btn xs" onClick={() => setShowPlanOpts(!showPlanOpts)} aria-label="More">⋯</button>
           </div>
+          {showPlanOpts && (
+            <div className="planopts">
+              <input className="sm" placeholder="Anything special today? e.g. long run, tired" value={extra} onChange={(e) => setExtra(e.target.value)} />
+              <div className="row gap"><button className="btn xs" onClick={() => setAdding(true)}>+ Event</button><button className="btn xs" onClick={() => setShowGoals(!showGoals)}>{showGoals ? 'Hide routine' : 'Edit routine'}</button></div>
+            </div>
+          )}
+          {summary && <p className="muted tiny">{summary}</p>}
+          {showGoals && <Goals goals={goals} setGoals={setGoals} settings={settings} setSettings={setSettings} />}
         </>
       )}
 

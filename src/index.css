@@ -117,3 +117,24 @@ input.sm { padding: 7px 10px; font-size: 14px; }
 .card.upnext { padding: 10px 12px; gap: 3px; border-radius: 12px; }
 .upper { text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
 .unrow { display: flex; gap: 8px; font-size: 13px; min-width: 0; } .unrow .etime { min-width: 56px; }
+/* time grid */
+.daygrid-wrap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.allday { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.adchip { font-size: 11px; background: var(--chip); border-radius: 6px; padding: 2px 6px; }
+.daygrid { height: calc(100dvh - 330px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 320px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.grid-inner { position: relative; }
+.hour { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); height: 0; }
+.hour span { position: absolute; top: -7px; left: 6px; font-size: 10px; color: var(--muted); background: var(--card); padding-right: 4px; }
+.gev { position: absolute; border-radius: 6px; padding: 2px 6px; font-size: 11px; overflow: hidden; background: color-mix(in srgb, #94a3b8 22%, var(--card)); border-left: 3px solid #94a3b8; cursor: pointer; }
+.gev.outlook { background: color-mix(in srgb, #0ea5e9 22%, var(--card)); border-left-color: #0ea5e9; }
+.gev.google { background: color-mix(in srgb, #a78bfa 22%, var(--card)); border-left-color: #a78bfa; }
+.gev.plan { background: color-mix(in srgb, var(--accent) 20%, var(--card)); border-left-color: var(--accent); }
+.gev.manual { background: color-mix(in srgb, var(--amber) 20%, var(--card)); border-left-color: var(--amber); }
+.gev.sel { z-index: 5; height: auto !important; min-height: 40px; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+.gtitle { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gtime, .gdetail { color: var(--muted); font-size: 10px; } .gdetail { margin-top: 2px; display: flex; flex-direction: column; gap: 2px; }
+.nowline { position: absolute; left: 42px; right: 0; height: 2px; background: #ef4444; z-index: 4; } .nowline::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+.planbar { display: flex; gap: 6px; } .planbar .btn.primary { flex: 1; }
+.btn.xs { padding: 4px 10px; font-size: 12px; border-radius: 8px; }
+.adchip.outlook { border-left: 2px solid #0ea5e9; } .adchip.google { border-left: 2px solid #a78bfa; }
+.planopts { display: flex; flex-direction: column; gap: 6px; }

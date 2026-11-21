@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePersisted, exportAll, importAll, download } from '../lib/store'
 import { outlookAccount, outlookSignIn, outlookSignOut } from '../lib/outlook'
+import { googleConnected, googleDisconnect, googleSignIn } from '../lib/google'
 
 export default function Settings() {
   const [clientId, setClientId] = usePersisted<string>('msClientId', '')
   const [apiKey, setApiKey] = usePersisted<string>('anthropicKey', '')
+  const [googleId, setGoogleId] = usePersisted<string>('googleClientId', '')
+  const [gConn, setGConn] = useState(googleConnected())
   const [acct, setAcct] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -44,6 +47,31 @@ export default function Settings() {
                 <li>Register, then copy the <b>Application (client) ID</b> and paste it above.</li>
               </ol>
               <p>If your Outlook is a work account, your employer's IT may need to approve it.</p>
+            </details>
+          </>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Google Calendar</h3>
+        {gConn ? (
+          <><p>Connected. Tap ↻ Sync on the Schedule tab to refresh.</p><button className="btn" onClick={() => { googleDisconnect(); setGConn(false) }}>Disconnect</button></>
+        ) : (
+          <>
+            <label className="field"><span>Google OAuth client ID</span><input value={googleId} placeholder="…apps.googleusercontent.com" onChange={(e) => setGoogleId(e.target.value.trim())} /></label>
+            <button className="btn primary" disabled={!googleId.endsWith('.apps.googleusercontent.com')} onClick={() => googleSignIn(googleId)}>Sign in with Google</button>
+            <details className="muted small help">
+              <summary>One-time setup (about 5 minutes, free)</summary>
+              <ol>
+                <li>Go to <b>console.cloud.google.com</b> and create a project called LifeHub.</li>
+                <li>APIs &amp; Services → Library → enable <b>Google Calendar API</b>.</li>
+                <li>OAuth consent screen → External → fill in the app name and your email → add yourself under <b>Test users</b>.</li>
+                <li>Credentials → Create credentials → <b>OAuth client ID</b> → Web application.</li>
+                <li>Authorised JavaScript origin: <code>{location.origin}</code></li>
+                <li>Authorised redirect URI: <code>{redirect}</code></li>
+                <li>Create, then copy the <b>Client ID</b> and paste it above.</li>
+              </ol>
+              <p>Google asks you to sign in again about once an hour when you sync, which is a one-tap redirect.</p>
             </details>
           </>
         )}

@@ -10,7 +10,7 @@ export interface Bet {
 }
 export interface Bookmaker { id: string; name: string; url: string; balance?: number; notes?: string; status?: 'active' | 'limited' | 'banned' }
 
-export interface CalEvent { id: string; title: string; start: string; end: string; source: 'outlook' | 'manual' | 'plan'; location?: string; allDay?: boolean; note?: string }
+export interface CalEvent { id: string; title: string; start: string; end: string; source: 'outlook' | 'google' | 'manual' | 'plan'; location?: string; allDay?: boolean; note?: string }
 export interface PlanGoal { id: string; title: string; minutes: number; days: number[]; earliest: string; latest: string; color: string }
 export interface PlanSettings { dayStart: string; dayEnd: string; buffer: number }
 

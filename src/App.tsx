@@ -7,6 +7,7 @@ import Health from './tabs/Health'
 import Betting from './tabs/Betting'
 import Settings from './tabs/Settings'
 import { ymd } from './lib/store'
+import { captureGoogleRedirect } from './lib/google'
 import type { DailyLog } from './lib/types'
 
 const TABS = [
@@ -34,8 +35,13 @@ async function applyHealthParams() {
   return true
 }
 
+const googleReturned = captureGoogleRedirect()
+
 export default function App() {
-  const [tab, setTab] = useState<string>(() => { try { return localStorage.getItem('tab') || 'today' } catch { return 'today' } })
+  const [tab, setTab] = useState<string>(() => {
+    if (googleReturned) { try { localStorage.setItem('autoSync', '1') } catch { /* ignore */ } return 'schedule' }
+    try { return localStorage.getItem('tab') || 'today' } catch { return 'today' }
+  })
   const [toast, setToast] = useState('')
   const [k, setK] = useState(0)
 
