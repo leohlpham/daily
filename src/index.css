@@ -1,11 +1,8 @@
 :root {
-  --bg: #f4f5f7; --card: #ffffff; --text: #0f172a; --muted: #64748b; --line: #e5e7eb;
-  --accent: #16a34a; --accent-text: #fff; --pos: #15803d; --neg: #dc2626; --chip: #eef2f7; --input: #f8fafc;
-  --blue: #3b82f6; --amber: #d97706;
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #0b1120; --card: #131c2e; --text: #e2e8f0; --muted: #8b9ab0; --line: #1f2a3d; --accent: #22c55e; --accent-text: #052e13; --pos: #4ade80; --neg: #f87171; --chip: #1e293b; --input: #0f1729; --amber: #f59e0b; }
+  --bg: #000000; --card: #0d0f14; --text: #f1f5f9; --muted: #8a94a6; --line: #1c2230;
+  --accent: #2f7bff; --accent-text: #ffffff; --pos: #4ade80; --neg: #f87171; --chip: #161b26; --input: #07090d;
+  --blue: #60a5fa; --amber: #f59e0b;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; }
@@ -67,7 +64,7 @@ h3 { font-size: 15px; margin: 0 0 8px; font-weight: 600; }
 .daynav { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
 .daynav button { font-size: 26px; width: 44px; height: 38px; text-align: center; color: var(--accent); }
 .timeline { display: flex; flex-direction: column; gap: 6px; }
-.event { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 12px; padding: 10px 12px; align-items: flex-start; }
+.event { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid #94a3b8; border-radius: 12px; padding: 10px 12px; align-items: flex-start; }
 .event.plan { border-left-color: var(--accent); border-style: dashed solid dashed solid; border-left-style: solid; } .event.manual { border-left-color: var(--amber); }
 .event .time { width: 64px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
 .goal { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
@@ -76,8 +73,8 @@ h3 { font-size: 15px; margin: 0 0 8px; font-weight: 600; }
 .spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; gap: 2px; }
 .spark-col span { font-size: 10px; color: var(--muted); }
 .spark-bar { width: 45%; border-radius: 3px; min-height: 2px; position: absolute; bottom: 16px; max-height: calc(100% - 16px); }
-.spark-bar.steps { background: var(--accent); left: 5%; } .spark-bar.sleep { background: var(--blue); right: 5%; }
-.dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin: 0 2px 0 8px; } .dot.steps { background: var(--accent); } .dot.sleep { background: var(--blue); }
+.spark-bar.steps { background: #94a3b8; left: 5%; } .spark-bar.sleep { background: var(--blue); right: 5%; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin: 0 2px 0 8px; } .dot.steps { background: #94a3b8; } .dot.sleep { background: var(--blue); }
 .date-sm { width: auto; padding: 6px 8px; font-size: 14px; }
 .help ol { padding-left: 18px; } .help code { font-size: 11px; word-break: break-all; background: var(--chip); padding: 1px 4px; border-radius: 4px; }
 details summary { cursor: pointer; color: var(--accent); }
