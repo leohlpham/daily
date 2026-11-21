@@ -32,8 +32,10 @@ export default function Today({ go }: { go: (t: string) => void }) {
 
   return (
     <div className="page">
-      <h1>{greet}, Leo</h1>
-      <p className="muted">{now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <div className="home-head">
+        <span className="date">{now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+        <h1>{greet}, Leo</h1>
+      </div>
 
       <button className="card tap upnext" onClick={() => go('schedule')}>
         <div className="row between"><span className="tiny muted upper">Up next</span><span className="muted tiny">›</span></div>
@@ -42,27 +44,27 @@ export default function Today({ go }: { go: (t: string) => void }) {
       </button>
 
       <div className="grid2">
-        <button className="card tap" onClick={() => go('money')}>
+        <button className="card tap tile" onClick={() => go('money')}>
           <h3>Spent This Month</h3>
           <b className="big">{money(thisSpend)}</b>
-          {lastSpendSamePoint > 0 && <p className={'small ' + (thisSpend <= lastSpendSamePoint ? 'pos' : 'neg')}>{thisSpend <= lastSpendSamePoint ? '▼' : '▲'} {money(Math.abs(thisSpend - lastSpendSamePoint))} vs last month</p>}
-          <p className="muted tiny">{latestTxn ? `Data to ${latestTxn}` : 'Import a CSV'}</p>
+          {lastSpendSamePoint > 0 && <p className={'subline ' + (thisSpend <= lastSpendSamePoint ? 'pos' : 'neg')}>{thisSpend <= lastSpendSamePoint ? '▼' : '▲'} {money(Math.abs(thisSpend - lastSpendSamePoint))} vs last month</p>}
+          <p className="foot">{latestTxn ? `Data to ${latestTxn}` : 'Import a CSV'}</p>
         </button>
-        <button className="card tap" onClick={() => go('betting')}>
+        <button className="card tap tile" onClick={() => go('betting')}>
           <h3>Betting · 7 Days</h3>
           <b className={'big ' + (bs.profit >= 0 ? 'pos' : 'neg')}>{money(bs.profit)}</b>
-          <p className="muted small">EV {money(bs.ev)}</p>
-          <p className="muted tiny">{allPending} pending</p>
+          <p className="subline">EV {money(bs.ev)}</p>
+          <p className="foot">{allPending} pending</p>
         </button>
-        <button className="card tap" onClick={() => go('health')}>
+        <button className="card tap tile" onClick={() => go('health')}>
           <h3>Sleep</h3>
           <b className="big">{lastNight ? `${lastNight.toFixed(1)}h` : '—'}</b>
-          <p className="muted small">{log?.steps ? `${log.steps.toLocaleString()} steps` : 'Log today'}</p>
+          <p className="foot">{log?.steps ? `${log.steps.toLocaleString()} steps` : 'Log today'}</p>
         </button>
-        <button className="card tap" onClick={() => go('health')}>
+        <button className="card tap tile" onClick={() => go('health')}>
           <h3>Training · 7 Days</h3>
           <b className="big">{weekTrain.length}</b>
-          <p className="muted small">{Math.round(weekTrain.reduce((s, a) => s + (a.distanceKm ?? 0), 0))} km · {Math.round(weekTrain.reduce((s, a) => s + (a.durationMin ?? 0), 0))} min</p>
+          <p className="foot">{Math.round(weekTrain.reduce((s, a) => s + (a.distanceKm ?? 0), 0))} km · {Math.round(weekTrain.reduce((s, a) => s + (a.durationMin ?? 0), 0))} min</p>
         </button>
       </div>
     </div>

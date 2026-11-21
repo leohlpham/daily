@@ -138,3 +138,46 @@ input.sm { padding: 7px 10px; font-size: 14px; }
 .btn.xs { padding: 4px 10px; font-size: 12px; border-radius: 8px; }
 .adchip.outlook { border-left: 2px solid #0ea5e9; } .adchip.google { border-left: 2px solid #a78bfa; }
 .planopts { display: flex; flex-direction: column; gap: 6px; }
+
+/* ===== Design polish ===== */
+:root { --card: #0b0d12; --card-2: #12161f; --line: #1a1f2b; --chip: #141924; --muted: #7d8799; --accent: #3b82f6; --accent-2: #60a5fa; }
+html, body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-feature-settings: 'cv11', 'ss01'; -webkit-font-smoothing: antialiased; }
+b, .big, .stat b, .etime, .gtime { font-variant-numeric: tabular-nums; }
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 2px; }
+h3 { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .01em; margin: 0; }
+.card p, .card ol { margin: 0; }
+.page { gap: 10px; }
+.card { border-radius: 14px; padding: 14px; gap: 8px; background: var(--card); border-color: var(--line); }
+.card.tap { transition: transform .12s ease, background .12s ease; } .card.tap:active { transform: scale(.98); background: var(--card-2); }
+.big { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.stat { background: var(--card); border-color: var(--line); padding: 10px 12px; gap: 2px; }
+.stat span { font-size: 11px; letter-spacing: .01em; } .stat b { font-size: 16px; letter-spacing: -0.01em; }
+.btn { border-radius: 10px; font-size: 14px; padding: 9px 14px; background: var(--chip); border: 1px solid var(--line); transition: transform .1s ease, opacity .1s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: linear-gradient(180deg, var(--accent-2), var(--accent)); border-color: transparent; box-shadow: 0 4px 14px -6px rgba(59,130,246,.7), inset 0 1px 0 rgba(255,255,255,.15); }
+.seg { background: var(--chip); border: 1px solid var(--line); border-radius: 10px; }
+.seg button { color: var(--muted); border-radius: 7px; }
+.seg button.on { background: #1e2533; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04); }
+input, select, textarea { background: #07090d; border-color: var(--line); border-radius: 10px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.18); }
+.notice { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: #bfdbfe; font-size: 13px; padding: 9px 12px; }
+.chip { background: var(--chip); border: 1px solid var(--line); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tabbar { background: rgba(0,0,0,.82); border-top: 1px solid var(--line); }
+.tabbar button { font-size: 10px; font-weight: 500; transition: color .15s; }
+.tabbar button.on svg { filter: drop-shadow(0 0 6px rgba(59,130,246,.55)); }
+.daynav { background: var(--card); border-color: var(--line); }
+.bookie { background: var(--card-2); border: 1px solid var(--line); transition: transform .1s; } .bookie:active { transform: scale(.96); }
+.bar { height: 6px; background: var(--chip); } .fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.sheet { background: #0d1017; border-top: 1px solid var(--line); box-shadow: 0 -10px 40px rgba(0,0,0,.6); }
+.sheet::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: #2a3242; margin: -8px auto 4px; }
+.sheet-bg { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.toast { background: var(--accent); color: #fff; box-shadow: 0 8px 24px -8px rgba(59,130,246,.8); }
+/* home */
+.home-head { display: flex; flex-direction: column; gap: 0; margin-bottom: 2px; }
+.home-head .date { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.home-head h1 { margin: 2px 0 0; }
+.tile { display: flex; flex-direction: column; gap: 4px; min-height: 104px; }
+.tile .foot { margin-top: auto; font-size: 11px; color: var(--muted); }
+.tile .subline { font-size: 12px; color: var(--muted); }
+.card.upnext { background: linear-gradient(180deg, rgba(59,130,246,.08), transparent 70%), var(--card); }
