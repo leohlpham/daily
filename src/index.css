@@ -82,3 +82,38 @@ details summary { cursor: pointer; color: var(--accent); }
 .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); font-size: 10px; padding: 4px 0; }
 .tabbar button.on { color: var(--accent); }
 @media (max-width: 380px) { .grid3 { grid-template-columns: 1fr 1fr; } .stat b { font-size: 15px; } }
+/* compact schedule */
+.page.compact { gap: 10px; }
+.title { font-size: 20px; margin: 2px 0; letter-spacing: -0.01em; }
+.btn.sm { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+input.sm { padding: 7px 10px; font-size: 14px; }
+.daynav.sm { padding: 2px; border-radius: 12px; font-size: 14px; } .daynav.sm button { font-size: 20px; height: 30px; width: 36px; }
+.list { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.erow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--line); border-left: 3px solid #94a3b8; font-size: 13px; }
+.erow:last-child { border-bottom: 0; } .erow.plan { border-left-color: var(--accent); } .erow.manual { border-left-color: var(--amber); }
+.etime { color: var(--muted); font-size: 12px; white-space: nowrap; min-width: 52px; font-variant-numeric: tabular-nums; }
+.erow .etime { min-width: 104px; }
+.etitle { font-weight: 500; }
+.x { color: var(--muted); font-size: 12px; padding: 4px; }
+.card.plan { padding: 10px 12px; gap: 6px; border-radius: 12px; }
+.stats3.sm .stat { padding: 7px 10px; border-radius: 12px; } .stats3.sm .stat b { font-size: 13px; } .stats3.sm .stat span { font-size: 11px; }
+.week { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.wday { display: flex; gap: 10px; width: 100%; padding: 8px 10px; border-bottom: 1px solid var(--line); align-items: flex-start; }
+.wday:last-child { border-bottom: 0; } .wday.today { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.wlabel { display: flex; flex-direction: column; align-items: center; width: 34px; font-size: 12px; } .wlabel span { color: var(--muted); font-size: 11px; }
+.wday.today .wlabel b { color: var(--accent); }
+.wev { display: flex; gap: 6px; font-size: 12px; padding: 1px 0; min-width: 0; } .wev .etime { min-width: 52px; }
+.wev.plan span:last-child { color: var(--accent); } .wev.act span:last-child { color: var(--pos); }
+.link.tiny { font-size: 11px; }
+.page.compact .title { font-size: 18px; }
+.page.compact .btn.sm { font-size: 12px; padding: 5px 10px; }
+.page.compact .seg.small button { font-size: 12px; padding: 4px 2px; }
+.page.compact .daynav.sm { font-size: 13px; } .page.compact .daynav.sm button { height: 26px; font-size: 18px; }
+.page.compact .erow { font-size: 12px; padding: 7px 10px; } .page.compact .erow .etime { min-width: 96px; font-size: 11px; }
+.page.compact .etime { font-size: 11px; }
+.page.compact .wev { font-size: 11px; } .page.compact .wlabel { font-size: 11px; width: 30px; } .page.compact .wday { padding: 6px 10px; }
+.page.compact .card.plan .small { font-size: 12px; } .page.compact input.sm { font-size: 16px; padding: 5px 9px; }
+.page.compact .stats3.sm .stat b { font-size: 12px; }
+.card.upnext { padding: 10px 12px; gap: 3px; border-radius: 12px; }
+.upper { text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.unrow { display: flex; gap: 8px; font-size: 13px; min-width: 0; } .unrow .etime { min-width: 56px; }

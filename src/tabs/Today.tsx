@@ -15,7 +15,7 @@ export default function Today({ go }: { go: (t: string) => void }) {
   const hr = now.getHours()
   const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'
 
-  const upcoming = events.filter((e) => e.start.slice(0, 10) === today && (e.allDay || new Date(e.end) > now)).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 5)
+  const upcoming = events.filter((e) => e.start.slice(0, 10) === today && (e.allDay || new Date(e.end) > now)).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 3)
   const month = today.slice(0, 7)
   const lastMonthD = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const lastMonth = ymd(lastMonthD).slice(0, 7)
@@ -35,10 +35,10 @@ export default function Today({ go }: { go: (t: string) => void }) {
       <h1>{greet}, Leo</h1>
       <p className="muted">{now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
 
-      <button className="card tap" onClick={() => go('schedule')}>
-        <div className="row between"><h3>Up next</h3><span className="muted">›</span></div>
-        {upcoming.map((e) => <div key={e.id} className="row between line"><span className="ellipsis">{e.title}</span><span className="muted small">{e.allDay ? 'All day' : fmt(e.start)}</span></div>)}
-        {!upcoming.length && <p className="muted">Nothing left today. Tap to plan your day.</p>}
+      <button className="card tap upnext" onClick={() => go('schedule')}>
+        <div className="row between"><span className="tiny muted upper">Up next</span><span className="muted tiny">›</span></div>
+        {upcoming.map((e) => <div key={e.id} className="unrow"><span className="etime">{e.allDay ? 'All day' : fmt(e.start)}</span><span className="ellipsis">{e.title}</span></div>)}
+        {!upcoming.length && <span className="muted small">Nothing left today</span>}
       </button>
 
       <div className="grid2">

@@ -31,6 +31,7 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
   const [signedIn, setSignedIn] = useState(false)
   const [showGoals, setShowGoals] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [view, setView] = useState<'day' | 'week'>('day')
 
   useEffect(() => { outlookAccount(clientId).then((a) => setSignedIn(!!a)).catch(() => {}) }, [clientId])
 
@@ -70,44 +71,83 @@ export default function Schedule({ openSettings }: { openSettings: () => void })
 
   const label = date === ymd(new Date()) ? 'Today' : date === addDays(ymd(new Date()), 1) ? 'Tomorrow' : new Date(date + 'T12:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })
 
+  const weekStart = (() => { const d = new Date(date + 'T12:00:00'); const off = (d.getDay() + 6) % 7; return addDays(date, -off) })()
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const weekEvents = (d: string) => events.filter((e) => e.start.slice(0, 10) === d).sort((x, y) => (x.allDay ? -1 : y.allDay ? 1 : x.start.localeCompare(y.start)))
+  const weekActs = acts.filter((x) => x.date >= weekStart && x.date <= weekDays[6])
+  const busyMin = weekDays.reduce((s, d) => s + weekEvents(d).filter((e) => !e.allDay && e.source !== 'plan').reduce((t, e) => t + (new Date(e.end).getTime() - new Date(e.start).getTime()) / 60000, 0), 0)
+  const range = (e: CalEvent) => e.allDay ? 'All day' : `${fmt(e.start)}–${fmt(e.end)}`
+
   return (
-    <div className="page">
-      <div className="row between"><h1>Schedule</h1><button className="btn" onClick={sync} disabled={!!busy}>{signedIn ? '↻ Outlook' : 'Connect Outlook'}</button></div>
-      <div className="daynav"><button onClick={() => setDate(addDays(date, -1))}>‹</button><b onClick={() => setDate(ymd(new Date()))}>{label}</b><button onClick={() => setDate(addDays(date, 1))}>›</button></div>
-      {msg && <div className="notice" onClick={() => setMsg('')}>{msg}</div>}
-      {busy && <div className="notice">{busy}</div>}
+    <div className="page compact">
+      <div className="row between"><h2 className="title">Schedule</h2><button className="btn sm" onClick={sync} disabled={!!busy}>{signedIn ? '↻ Outlook' : 'Connect Outlook'}</button></div>
+      <div className="seg small">{(['day', 'week'] as const).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>
+      {msg && <div className="notice small" onClick={() => setMsg('')}>{msg}</div>}
+      {busy && <div className="notice small">{busy}</div>}
 
-      <div className="card">
-        <input placeholder="Anything special today? (optional, e.g. ‘long run’, ‘tired’)" value={extra} onChange={(e) => setExtra(e.target.value)} />
-        <div className="row gap">
-          <button className="btn primary grow" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings to use AI planning. Using the quick planner instead.'), plan(false))}>✨ Plan my day</button>
-          <button className="btn" disabled={!!busy} onClick={() => plan(false)}>Quick plan</button>
-        </div>
-        {summary && <p className="muted small">{summary}</p>}
-        {!apiKey && <p className="muted small">AI planning needs a Claude API key. <button className="link" onClick={openSettings}>Add one in Settings</button></p>}
-      </div>
-
-      <div className="timeline">
-        {day.map((e) => (
-          <div key={e.id} className={'event ' + e.source}>
-            <div className="time">{e.allDay ? 'All day' : <>{fmt(e.start)}<br /><span className="muted">{fmt(e.end)}</span></>}</div>
-            <div className="grow">
-              <b>{e.title}</b>
-              {e.location && <div className="muted small">{e.location}</div>}
-              {e.note && <div className="muted small">{e.note}</div>}
-              <div className="muted tiny">{e.source === 'outlook' ? 'Outlook' : e.source === 'plan' ? 'Planned' : 'Manual'}</div>
-            </div>
-            {e.source !== 'outlook' && <button className="link" onClick={() => setEvents(events.filter((x) => x.id !== e.id))}>✕</button>}
+      {view === 'day' && (
+        <>
+          <div className="daynav sm"><button onClick={() => setDate(addDays(date, -1))}>‹</button><b onClick={() => setDate(ymd(new Date()))}>{label}</b><button onClick={() => setDate(addDays(date, 1))}>›</button></div>
+          <div className="list">
+            {day.map((e) => (
+              <div key={e.id} className={'erow ' + e.source}>
+                <span className="etime">{range(e)}</span>
+                <div className="grow">
+                  <div className="etitle">{e.title}</div>
+                  {(e.location || e.note) && <div className="muted tiny">{[e.location, e.note].filter(Boolean).join(' · ')}</div>}
+                </div>
+                {e.source !== 'outlook' && <button className="x" onClick={() => setEvents(events.filter((x) => x.id !== e.id))}>✕</button>}
+              </div>
+            ))}
+            {!day.length && <p className="muted small center">Nothing scheduled.</p>}
           </div>
-        ))}
-        {!day.length && <p className="muted center">Nothing scheduled. Connect Outlook or tap Plan my day.</p>}
-      </div>
-      <div className="row gap">
-        <button className="btn" onClick={() => setAdding(true)}>+ Event</button>
-        <button className="btn" onClick={() => setShowGoals(!showGoals)}>{showGoals ? 'Hide routine' : 'Edit routine'}</button>
-      </div>
+          <div className="row gap">
+            <button className="btn sm" onClick={() => setAdding(true)}>+ Event</button>
+            <button className="btn sm" onClick={() => setShowGoals(!showGoals)}>{showGoals ? 'Hide routine' : 'Edit routine'}</button>
+          </div>
+          {showGoals && <Goals goals={goals} setGoals={setGoals} settings={settings} setSettings={setSettings} />}
 
-      {showGoals && <Goals goals={goals} setGoals={setGoals} settings={settings} setSettings={setSettings} />}
+          <div className="card plan">
+            <div className="small"><b>Plan this day</b> <span className="muted">fits your routine around your calendar</span></div>
+            <input className="sm" placeholder="Anything special? e.g. long run, tired" value={extra} onChange={(e) => setExtra(e.target.value)} />
+            <div className="row gap">
+              <button className="btn sm primary grow" disabled={!!busy} onClick={() => apiKey ? plan(true) : (setMsg('Add your Claude API key in Settings to use AI planning. Used the quick planner instead.'), plan(false))}>✨ Plan my day</button>
+              <button className="btn sm" disabled={!!busy} onClick={() => plan(false)}>Quick plan</button>
+            </div>
+            {summary && <p className="muted tiny">{summary}</p>}
+            {!apiKey && <p className="muted tiny">AI planning needs a Claude API key. <button className="link tiny" onClick={openSettings}>Add in Settings</button></p>}
+          </div>
+        </>
+      )}
+
+      {view === 'week' && (
+        <>
+          <div className="daynav sm"><button onClick={() => setDate(addDays(weekStart, -7))}>‹</button>
+            <b onClick={() => setDate(ymd(new Date()))}>{new Date(weekStart + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {new Date(weekDays[6] + 'T12:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</b>
+            <button onClick={() => setDate(addDays(weekStart, 7))}>›</button></div>
+          <div className="stats3 sm">
+            <div className="stat"><span>Booked</span><b>{Math.round(busyMin / 6) / 10}h</b></div>
+            <div className="stat"><span>Sessions</span><b>{weekActs.length}</b></div>
+            <div className="stat"><span>Training</span><b>{Math.round(weekActs.reduce((t, x) => t + (x.distanceKm ?? 0), 0))}km · {Math.round(weekActs.reduce((t, x) => t + (x.durationMin ?? 0), 0))}m</b></div>
+          </div>
+          <div className="week">
+            {weekDays.map((d) => {
+              const evs = weekEvents(d), da = acts.filter((x) => x.date === d), isToday = d === ymd(new Date())
+              return (
+                <button key={d} className={'wday' + (isToday ? ' today' : '')} onClick={() => { setDate(d); setView('day') }}>
+                  <div className="wlabel"><b>{new Date(d + 'T12:00:00').toLocaleDateString('en-AU', { weekday: 'short' })}</b><span>{d.slice(8)}</span></div>
+                  <div className="grow">
+                    {evs.map((e) => <div key={e.id} className={'wev ' + e.source}><span className="etime">{e.allDay ? 'All day' : fmt(e.start)}</span><span className="ellipsis">{e.title}</span></div>)}
+                    {da.map((x) => <div key={x.id} className="wev act"><span className="etime">{x.type.split(" ")[0]}</span><span className="ellipsis">{x.title || x.type}{x.distanceKm ? ` · ${x.distanceKm.toFixed(1)}km` : ''}{x.durationMin ? ` · ${Math.round(x.durationMin)}m` : ''}</span></div>)}
+                    {!evs.length && !da.length && <div className="muted tiny">Free</div>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+
       {adding && <AddEvent date={date} onAdd={(e) => { setEvents([...events, e]); setAdding(false) }} onClose={() => setAdding(false)} />}
     </div>
   )
