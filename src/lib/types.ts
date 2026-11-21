@@ -15,4 +15,4 @@ export interface PlanGoal { id: string; title: string; minutes: number; days: nu
 export interface PlanSettings { dayStart: string; dayEnd: string; buffer: number }
 
 export interface Activity { id: string; date: string; type: string; title: string; distanceKm?: number; durationMin?: number; calories?: number; avgHr?: number }
-export interface DailyLog { date: string; sleepHrs?: number; steps?: number; weightKg?: number; restingHr?: number; mood?: number; energy?: number; water?: number; notes?: string }
+export interface DailyLog { date: string; bodyBattery?: number; hrv?: number; hrvStatus?: string; stress?: number; sleepScore?: number; readiness?: number; vo2max?: number; trainingStatus?: string; trainingLoad?: number; sleepHrs?: number; steps?: number; weightKg?: number; restingHr?: number; mood?: number; energy?: number; water?: number; notes?: string }

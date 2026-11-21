@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { usePersisted, exportAll, importAll, download } from '../lib/store'
 import { outlookAccount, outlookSignIn, outlookSignOut } from '../lib/outlook'
 import { googleConnected, googleDisconnect, googleSignIn } from '../lib/google'
+import { stravaAuth, stravaDisconnect, stravaSignIn } from '../lib/strava'
 
 export default function Settings() {
   const [clientId, setClientId] = usePersisted<string>('msClientId', '')
   const [apiKey, setApiKey] = usePersisted<string>('anthropicKey', '')
   const [googleId, setGoogleId] = usePersisted<string>('googleClientId', '')
   const [gConn, setGConn] = useState(googleConnected())
+  const [stravaId, setStravaId] = usePersisted<string>('stravaClientId', '')
+  const [stravaSecret, setStravaSecret] = usePersisted<string>('stravaSecret', '')
+  const [sAuth, setSAuth] = useState(stravaAuth())
   const [acct, setAcct] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -72,6 +76,31 @@ export default function Settings() {
                 <li>Create, then copy the <b>Client ID</b> and paste it above.</li>
               </ol>
               <p>Google asks you to sign in again about once an hour when you sync, which is a one-tap redirect.</p>
+            </details>
+          </>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Strava (workouts)</h3>
+        {sAuth ? (
+          <><p>Connected{sAuth.athlete ? <> as <b>{sAuth.athlete}</b></> : ''}. Workouts sync automatically each time you open the app.</p><button className="btn" onClick={() => { stravaDisconnect(); setSAuth(null) }}>Disconnect</button></>
+        ) : (
+          <>
+            <div className="grid2">
+              <label className="field"><span>Client ID</span><input inputMode="numeric" value={stravaId} onChange={(e) => setStravaId(e.target.value.trim())} /></label>
+              <label className="field"><span>Client secret</span><input type="password" value={stravaSecret} onChange={(e) => setStravaSecret(e.target.value.trim())} /></label>
+            </div>
+            <button className="btn primary" disabled={!/^\d+$/.test(stravaId) || stravaSecret.length < 20} onClick={() => stravaSignIn(stravaId)}>Connect Strava</button>
+            <details className="muted small help">
+              <summary>One-time setup (about 2 minutes, free)</summary>
+              <ol>
+                <li>In Garmin Connect app → More → Settings → Connected Apps → <b>Strava</b>, turn it on so every workout uploads to Strava.</li>
+                <li>On a browser, go to <b>strava.com/settings/api</b> and create an app (any name and website).</li>
+                <li>Set <b>Authorization Callback Domain</b> to <code>{location.hostname}</code></li>
+                <li>Copy the <b>Client ID</b> and <b>Client Secret</b> into the boxes above, then tap Connect Strava.</li>
+              </ol>
+              <p>The secret is stored only on this phone and is only sent to Strava.</p>
             </details>
           </>
         )}

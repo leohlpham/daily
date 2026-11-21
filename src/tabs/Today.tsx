@@ -89,6 +89,14 @@ export default function Today({ go }: { go: (t: string) => void }) {
             <div className="metric"><span className="mlabel"><i className="dot-ic" style={{ background: 'var(--train)' }} />Training · 7d</span><b>{trainMin}<small> min</small></b></div>
           </div>
         </div>
+        {(shown?.bodyBattery !== undefined || shown?.hrv !== undefined || shown?.readiness !== undefined || shown?.stress !== undefined) && (
+          <div className="advrow">
+            {shown?.bodyBattery !== undefined && <span><em>Body Battery</em><b>{shown.bodyBattery}</b></span>}
+            {shown?.hrv !== undefined && <span><em>HRV</em><b>{shown.hrv}<small>ms</small></b></span>}
+            {shown?.readiness !== undefined && <span><em>Readiness</em><b>{shown.readiness}</b></span>}
+            {shown?.stress !== undefined && <span><em>Stress</em><b>{shown.stress}</b></span>}
+          </div>
+        )}
         {!shown && <p className="hint">Connect Garmin → Apple Health and the nightly Shortcut (Health tab) to fill this in automatically.</p>}
       </button>
 

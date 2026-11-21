@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react'
 import { usePersisted, uid, ymd } from '../lib/store'
 import { parseCsv, parseDate } from '../lib/csv'
 import type { Activity, DailyLog } from '../lib/types'
+import { stravaAuth, stravaSyncNow } from '../lib/strava'
+import { extractGarminStats } from '../lib/garminShot'
 
 const hms = (s: string) => { const p = s.split(':').map(Number); if (p.some(isNaN)) return undefined; return p.length === 3 ? p[0] * 60 + p[1] + p[2] / 60 : p.length === 2 ? p[0] + p[1] / 60 : undefined }
 const n = (s?: string) => { if (!s) return undefined; const v = parseFloat(s.replace(/,/g, '')); return isNaN(v) ? undefined : v }
@@ -27,6 +29,25 @@ export default function Health() {
   const [msg, setMsg] = useState('')
   const [showHelp, setShowHelp] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const shotRef = useRef<HTMLInputElement>(null)
+  const [apiKey] = usePersisted<string>('anthropicKey', '')
+
+  async function onGarminShots(files: File[]) {
+    if (!files.length) return
+    if (!apiKey) { setMsg('Add your Claude API key in Settings to read Garmin screenshots.'); return }
+    setMsg('Reading Garmin screenshots…')
+    try {
+      const g = await extractGarminStats(apiKey, files, ymd(new Date()))
+      const d = /^\d{4}-\d{2}-\d{2}$/.test(g.date) ? g.date : ymd(new Date())
+      const patch: Partial<DailyLog> = {}
+      const keys = ['bodyBattery', 'hrv', 'hrvStatus', 'stress', 'sleepScore', 'sleepHrs', 'readiness', 'vo2max', 'trainingStatus', 'trainingLoad', 'restingHr', 'steps'] as const
+      for (const k of keys) { const v = g[k]; if (v !== null && v !== undefined && v !== '') (patch as Record<string, unknown>)[k] = v }
+      const cur = logs.find((l) => l.date === d) ?? { date: d }
+      setLogs([...logs.filter((l) => l.date !== d), { ...cur, ...patch }].sort((a, b) => a.date.localeCompare(b.date)))
+      setDate(d)
+      setMsg(`Saved ${Object.keys(patch).length} Garmin stats for ${d}.`)
+    } catch (e) { setMsg((e as Error).message) }
+  }
   const log = logs.find((l) => l.date === date) ?? { date }
   const set = (p: Partial<DailyLog>) => setLogs([...logs.filter((l) => l.date !== date), { ...log, ...p }].sort((a, b) => a.date.localeCompare(b.date)))
 
@@ -56,7 +77,8 @@ export default function Health() {
 
   return (
     <div className="page">
-      <div className="row between"><h1>Health</h1><button className="btn" onClick={() => fileRef.current?.click()}>Import Garmin</button>
+      <div className="row between"><h1>Health</h1><div className="row gap"><button className="btn" onClick={() => shotRef.current?.click()}>Garmin screenshot</button><button className="btn" onClick={() => fileRef.current?.click()}>CSV</button></div>
+        <input ref={shotRef} type="file" accept="image/*" multiple hidden onChange={(e) => { const f = [...(e.target.files ?? [])]; e.target.value = ''; onGarminShots(f) }} />
         <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = '' }} /></div>
       {msg && <div className="notice" onClick={() => setMsg('')}>{msg}</div>}
 
@@ -64,6 +86,16 @@ export default function Health() {
         <div className="stat"><span>Avg sleep</span><b>{avg('sleepHrs')?.toFixed(1) ?? '—'}h</b></div>
         <div className="stat"><span>Avg steps</span><b>{avg('steps') ? Math.round(avg('steps')!).toLocaleString() : '—'}</b></div>
         <div className="stat"><span>7-day training</span><b>{Math.round(weekActs.reduce((s, a) => s + (a.durationMin ?? 0), 0))}m</b></div>
+      </div>
+
+      <div className="card">
+        <div className="row between"><h3>Garmin advanced stats · {log.date === ymd(new Date()) ? 'Today' : log.date}</h3></div>
+        <div className="adv">
+          {([['Body Battery', log.bodyBattery, ''], ['HRV', log.hrv, ' ms', log.hrvStatus], ['Stress', log.stress, ''], ['Sleep score', log.sleepScore, ''], ['Readiness', log.readiness, ''], ['VO2 max', log.vo2max, ''], ['Training load', log.trainingLoad, '', log.trainingStatus]] as [string, number | undefined, string, string?][]).map(([l, v, u, sub]) => (
+            <div key={l} className="advcell"><span>{l}</span><b>{v ?? '—'}{v !== undefined && u ? <small>{u}</small> : null}</b>{sub && <em>{sub}</em>}</div>
+          ))}
+        </div>
+        <p className="muted tiny">Garmin doesn't share these with Apple Health or Strava. Screenshot your My Day, HRV, Sleep or Training Readiness screens in Garmin Connect and tap “Garmin screenshot”. Claude fills them in.</p>
       </div>
 
       <div className="card">
@@ -101,14 +133,16 @@ export default function Health() {
       </div>
 
       <div className="card">
-        <h3>Recent activities</h3>
+        <div className="row between"><h3>Recent activities</h3>
+          {stravaAuth() ? <button className="link" onClick={async () => { setMsg('Syncing Strava…'); try { const n = await stravaSyncNow(true); setMsg(`Synced ${n ?? 0} Strava activities.`); location.reload() } catch (e) { setMsg((e as Error).message) } }}>↻ Strava</button> : <span className="muted tiny">Connect Strava in Settings for auto-sync</span>}
+        </div>
         {[...acts].reverse().slice(0, 20).map((a) => (
           <div key={a.id} className="row between line">
             <span><b>{a.title || a.type}</b><br /><span className="muted small">{a.date} · {a.type}</span></span>
             <span className="right small">{a.distanceKm ? `${a.distanceKm.toFixed(2)} km` : ''}<br /><span className="muted">{a.durationMin ? `${Math.round(a.durationMin)} min` : ''}{a.avgHr ? ` · ${a.avgHr} bpm` : ''}</span></span>
           </div>
         ))}
-        {!acts.length && <p className="muted">No activities yet. Export a CSV from Garmin Connect and import it.</p>}
+        {!acts.length && <p className="muted">No activities yet. Connect Strava in Settings, or import a Garmin CSV.</p>}
       </div>
     </div>
   )

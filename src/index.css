@@ -212,3 +212,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .rev { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--line); } .rev.off { opacity: .45; }
 .rev select { padding: 6px 8px; font-size: 14px; }
 .sheet-title { font-size: 16px; color: var(--text); }
+.adv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.advcell { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.advcell span { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.advcell b { font-size: 16px; } .advcell small { font-size: 10px; color: var(--muted); font-weight: 500; } .advcell em { font-size: 10px; color: var(--accent-2); font-style: normal; }
+@media (max-width: 380px) { .adv { grid-template-columns: repeat(3, 1fr); } }
+.advrow { display: flex; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.advrow span { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.advrow em { font-style: normal; font-size: 10px; color: var(--muted); } .advrow b { font-size: 15px; } .advrow small { font-size: 10px; color: var(--muted); margin-left: 1px; }

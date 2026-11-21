@@ -8,6 +8,7 @@ import Betting from './tabs/Betting'
 import Settings from './tabs/Settings'
 import { ymd } from './lib/store'
 import { captureGoogleRedirect } from './lib/google'
+import { captureStravaCode, stravaFinishSignIn, stravaSyncNow } from './lib/strava'
 import type { DailyLog } from './lib/types'
 
 const TABS = [
@@ -36,9 +37,11 @@ async function applyHealthParams() {
 }
 
 const googleReturned = captureGoogleRedirect()
+const stravaCode = captureStravaCode()
 
 export default function App() {
   const [tab, setTab] = useState<string>(() => {
+    if (stravaCode) return 'health'
     if (googleReturned) { try { localStorage.setItem('autoSync', '1') } catch { /* ignore */ } return 'schedule' }
     try { return localStorage.getItem('tab') || 'today' } catch { return 'today' }
   })
@@ -47,6 +50,11 @@ export default function App() {
 
   useEffect(() => { try { localStorage.setItem('tab', tab) } catch { /* ignore */ } window.scrollTo(0, 0) }, [tab])
   useEffect(() => {
+    const flash = (t: string) => { setToast(t); setTimeout(() => setToast(''), 3000) }
+    if (stravaCode) stravaFinishSignIn(stravaCode).then((n) => { flash(`Strava connected · ${n ?? 0} activities synced`); setK((x) => x + 1) }).catch((e) => flash(e.message))
+    else stravaSyncNow().then((n) => { if (n) setK((x) => x + 1) }).catch(() => {})
+    const onVis = () => { if (document.visibilityState === 'visible') stravaSyncNow().then((n) => { if (n) setK((x) => x + 1) }).catch(() => {}) }
+    document.addEventListener('visibilitychange', onVis)
     applyHealthParams().then((did) => { if (did) { setToast('Health data updated from Shortcut'); setK((x) => x + 1); setTimeout(() => setToast(''), 3000) } })
     if (/code=|error=/.test(location.hash)) setTab('schedule') // returning from Microsoft sign-in
   }, [])
